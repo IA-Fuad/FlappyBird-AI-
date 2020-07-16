@@ -1,37 +1,39 @@
-function NeuralNetwork(inputUnit, middleLayerUnit, outputUnit) {
-    this.inputUnit = inputUnit;
-    this.middleLayerUnit = middleLayerUnit;
-    this.outputUnit = outputUnit;
-    this.firstWeights = [];
-    this.secondWeights = [];
+class NeuralNetwork {
+    constructor(inputUnit, middleLayerUnit, outputUnit) {
+        this.inputUnit = inputUnit;
+        this.middleLayerUnit = middleLayerUnit;
+        this.outputUnit = outputUnit;
+        this.firstWeights = [];
+        this.secondWeights = [];
 
-    this.generateRandomWeights = function () {
-        for (let i = 0; i < this.middleLayerUnit; i++) {
-            let x = [];
-            for (let j = 0; j < this.inputUnit; j++) {
-                x.push(generateRandom(-1, 1));
+        this.generateRandomWeights = function () {
+            for (let i = 0; i < this.middleLayerUnit; i++) {
+                let x = [];
+                for (let j = 0; j < this.inputUnit; j++) {
+                    x.push(generateRandom(-1, 1));
+                }
+                this.firstWeights.push(x);
             }
-            this.firstWeights.push(x);
-        }
 
-        for (let i = 0; i < this.outputUnit; i++) {
-            let x = [];
-            for (let j = 0; j < this.middleLayerUnit; j++) {
-                x.push(generateRandom(-1, 1));
+            for (let i = 0; i < this.outputUnit; i++) {
+                let x = [];
+                for (let j = 0; j < this.middleLayerUnit; j++) {
+                    x.push(generateRandom(-1, 1));
+                }
+                this.secondWeights.push(x);
             }
-            this.secondWeights.push(x);
-        }
-    }
+        };
 
-    this.predictJump = function (inputs) {
-        let a1 = matrixVectorMultiplication(this.firstWeights, inputs);
-        a1 = sigmoiActivation(a1);
-        let output = matrixVectorMultiplication(this.secondWeights, a1);
-        output = sigmoiActivation(output);
-        if (output[0] >= 0.5) {
-            return true;
-        }
-        return false;
+        this.predictJump = function (inputs) {
+            let a1 = matrixVectorMultiplication(this.firstWeights, inputs);
+            a1 = sigmoiActivation(a1);
+            let output = matrixVectorMultiplication(this.secondWeights, a1);
+            output = sigmoiActivation(output);
+            if (output[0] >= 0.5) {
+                return true;
+            }
+            return false;
+        };
     }
 }
 

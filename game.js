@@ -166,11 +166,4 @@ function playGame(birds) {
 }
 
 
-function playWithBestBird() {
-
-    
-}
-
-
-
 

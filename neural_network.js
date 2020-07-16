@@ -24,13 +24,10 @@ function NeuralNetwork(inputUnit, middleLayerUnit, outputUnit) {
     }
 
     this.predictJump = function (inputs) {
-        //console.log(inputs);
         let a1 = matrixVectorMultiplication(this.firstWeights, inputs);
         a1 = sigmoiActivation(a1);
-        //console.log('a1', a1);
         let output = matrixVectorMultiplication(this.secondWeights, a1);
         output = sigmoiActivation(output);
-        //console.log('output', output)
         if (output[0] >= 0.5) {
             return true;
         }
@@ -39,8 +36,6 @@ function NeuralNetwork(inputUnit, middleLayerUnit, outputUnit) {
 }
 
 function matrixVectorMultiplication(a, b) {
-    //console.log('a', a);
-    //console.log('b', b);
     let ans = [];
     for (let i = 0; i < a.length; i++) {
         ans[i] = 0;

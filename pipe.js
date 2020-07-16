@@ -1,21 +1,28 @@
-function Pipe(pipeNumbers, pipeWidth, middleGap, sideGap) {
+function Pipe(pipeNumbers, pipeWidth, middleGap, sideGap, pipeHeight) {
     this.pipeNumbers = pipeNumbers;
     this.pipeWidth = pipeWidth;
+    this.pipeHeight = pipeHeight;
     this.middleGap = middleGap;
     this.sideGap = sideGap;
-    this.originalCopy = [];
+    this.originalCopy = (pipeHeight == null) ? [] : pipeHeight;
+    this.pipes = []
 
     this.generate = function () {
-        let pipes = [];
         let firstPipeHeight;
         let gap = 0;
 
         for (let i = 0; i < pipeNumbers; i++) {
-            firstPipeHeight = generateRandom(100, canvas.height - 300);
+            if (this.pipeHeight == null) {
+                firstPipeHeight = generateRandom(100, canvas.height - 300);
+                this.originalCopy[i] = firstPipeHeight;
+            }
+            else {
+                firstPipeHeight = this.pipeHeight[i];
+            }
             let ob = {
                 a: new Rectangle(
                     context,
-                    canvas.width + gap,
+                    canvas.width / 2 + gap,
                     0,
                     this.pipeWidth,
                     firstPipeHeight,
@@ -24,7 +31,7 @@ function Pipe(pipeNumbers, pipeWidth, middleGap, sideGap) {
                 ),
                 b: new Rectangle(
                     context,
-                    canvas.width + gap,
+                    canvas.width / 2 + gap,
                     firstPipeHeight + this.middleGap,
                     this.pipeWidth,
                     canvas.height,
@@ -32,16 +39,18 @@ function Pipe(pipeNumbers, pipeWidth, middleGap, sideGap) {
                     "green"
                 ),
             };
-            pipes[i] = ob;
-            originalCopy.push(ob);
-            gap = gap + pipeWidth + sideGap;
+            this.pipes[i] = ob;
+            gap = gap + this.pipeWidth + this.sideGap;
         }
-        
-        return pipes;
     }
 
     this.draw = function (pipe) {
         pipe.a.draw();
         pipe.b.draw();
+    }
+
+    this.move = function (pipe, dx) {
+        pipe.a.x += dx;
+        pipe.b.x += dx;
     }
 }

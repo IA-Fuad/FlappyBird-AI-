@@ -1,35 +1,27 @@
-function Population(N, population) {
+function Population(N, pop) {
     this.N = N;
-    this.population = (population == null) ? [] : population;
+    this.population = (pop == null) ? [] : pop;
     this.fitness = [];
     this.bestFit = 0;
     this.bestScore = 0;
     this.totalScore = 0;
-
-    this.reset = function () {
-        this.fitness = [];
-        this.bestFit = 0;
-        this.bestScore = 0;
-        this.totalScore = 0;
-    }
+    this.alive = N;
 
     this.generateNewPopulation = function () {
         for (let i = 0; i < this.N; i++) {
-            this.population[i] = new Bird();
+            this.population[i] = new Bird(birdInitX, birdInitY, birdWidth, birdHeight, birdRadius);
             this.population[i].brain.generateRandomWeights();
         }
     }
 
     this.calculateFitness = function () {
         for (let i = 0; i < this.N; i++) {
-            //console.log(this.population[i])
-            //console.log(this.population[i].score);
             let score =
                 this.population[i].distanceTraveled *
                 this.population[i].distanceTraveled *
                 this.population[i].distanceTraveled;
             this.fitness.push(score);
-            //console.log('score', score)
+
             if (score > this.bestScore) {
                 this.bestScore = score;
                 this.bestFit = i;
@@ -40,31 +32,17 @@ function Population(N, population) {
 
     this.crossOver = function () {
         let newPopulation = [], s = 0;
-        newPopulation[this.bestFit] = this.population[this.bestFit];
-        if (this.bestFit == 0) {
-            newPopulation[1] = this.population[this.bestFit];
-            s = 2;
-        }
-        else {
-            newPopulation[0] = this.population[this.bestFit];
-            s = 1;
-        }
-
+    
         for (let i = s; i < this.N; i++) {
-            if (i == this.bestFit) {
-                continue;
-            }
-            if (i % 2 == 0) {
+            if (i % 10 == 0) {
                 let a = chooseParent(this.fitness, this.totalScore);
-                newPopulation[i] = new Bird();
+                newPopulation[i] = new Bird(birdInitX, birdInitY, birdWidth, birdHeight, birdRadius);
                 newPopulation[i].brain = this.population[a].brain;
                 continue;
             }
 
             let a = chooseParent(this.fitness, this.totalScore);
             let b = chooseParent(this.fitness, this.totalScore);
-
-            //console.log(a, b)
 
             let aw1 = this.population[a].brain.firstWeights;
             let aw2 = this.population[a].brain.secondWeights;
@@ -110,25 +88,20 @@ function Population(N, population) {
                 childw2.push(x);
             }
 
-            newPopulation[i] = new Bird();
+            newPopulation[i] = new Bird(birdInitX, birdInitY, birdWidth, birdHeight, birdRadius);
             newPopulation[i].brain.firstWeights = childw1;
             newPopulation[i].brain.secondWeights = childw2;
         }
 
-        this.population = newPopulation;
-        //return newPopulation;
+        return newPopulation;
     }
 
-    this.mutation = function (mutationRate) {
-        for (let i = 0; i < this.population.length; i++) {
-            if (i == this.bestFit) {
-                continue;
-            }
+    this.mutation = function (mutationRate, newPopulation) {
+        for (let i = 0; i < newPopulation.length; i++) {
             let r = Math.random();
-            if (r < mutationRate || i == 0 || i == 1) {
-                //console.log('mutating')
-                let w1 = this.population[i].brain.firstWeights;
-                let w2 = this.population[i].brain.secondWeights;
+            if (r < mutationRate) {
+                let w1 = newPopulation[i].brain.firstWeights;
+                let w2 = newPopulation[i].brain.secondWeights;
 
                 for (let j = 0; j < w1.length; j++) {
                     for (let k = 0; k < w1[j].length; k++) {
@@ -148,12 +121,12 @@ function Population(N, population) {
                     }
                 }
 
-                this.population[i].firstWeights = w1;
-                this.population[i].secondWeights = w2;
+                newPopulation[i].firstWeights = w1;
+                newPopulation[i].secondWeights = w2;
             }
         }
 
-        //return population;
+        return newPopulation;
     }
 }
 

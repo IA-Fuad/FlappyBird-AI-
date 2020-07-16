@@ -2,9 +2,8 @@ const canvas = document.querySelector('canvas');
 const context = canvas.getContext('2d');
 const canvasHeight = 600;
 const canvasWidth = 600;
-const pipeNumbers = 100;
+const pipeNumbers = 5000;
 const pipeGap = 100;
-const dy = -2;
 const acceleration = 1;
 const pipeWidth = 50;
 const sideGap = 200;
@@ -19,126 +18,37 @@ let alive = document.getElementById('alive');
 let best_score = document.getElementById("best_score");
 let best_scorer = document.getElementById("best_scorer");
 
-let generation = 1;
-let bestScorerGen = 1;
+
 let won = false;
-let bestBird;
 
 //document.addEventListener('keydown', play);
 
-let pipe = [];
-let dx = -2;
-let l = 0, r = 7;
+let pipe;
 let finishGame = false;
-let pipeData = [];
-let t;
 let totalDx = 0;
-let d = 0;
 let bestScore = 0;
+let l = 0, r = 7;
+let dx = -2;
 
-function play(event) {
-    if (event.code === "Space") {
-        bird.vel = -10;
-    }
-}
+// function play(event) {
+//     if (event.code === "Space") {
+//         bird.vel = -10;
+//     }
+// }
 
 function reset() {
-    l = 0;
-    r = 7;
     finishGame = false;
     totalDx = 0;
+    l = 0;
+    r = 7;
     d = 0;
-    //bestScore = 0;
-
-    let firstPipeHeight = 100;
-    let gap = 0;
-
-    for (let i = 0; i < pipeNumbers; i++) {
-        firstPipeHeight = pipeData[i];
-        let ob = {
-            a: new Rectangle(
-                context,
-                canvas.width + gap,
-                0,
-                pipeWidth,
-                firstPipeHeight,
-                "black",
-                "green"
-            ),
-            b: new Rectangle(
-                context,
-                canvas.width + gap,
-                firstPipeHeight + middleGap,
-                pipeWidth,
-                canvas.height,
-                "black",
-                "green"
-            ),
-        };
-        pipe[i] = ob;
-        gap = gap + pipeWidth + sideGap;
-    }
 }
-
-function Bird() {
-    this.bird = new Rectangle(context, 100, 100, 30, 30, "green", "yellow");
-    this.brain = new NeuralNetwork(3, 4, 1);
-    this.vel = 0;
-    this.score = 0;
-    this.distanceTraveled = 0;
-    this.passed = -1;
-    this.dead = false;
-
-    this.reset = function () {
-        this.bird = new Rectangle(context, 100, 100, 30, 30, "green", "yellow");
-        this.vel = 0;
-        this.score = 0;
-        this.distanceTraveled = 0;
-        this.passed = -1;
-        this.dead = false;
-    }
-}
-
-pipe = new Pipe(pipeNumbers, pipeWidth, middleGap, sideGap);
-
-function generatePipe() {
-    let firstPipeHeight = 100;
-    let gap = 0;
-
-    for (let i = 0; i < pipeNumbers; i++) {
-        firstPipeHeight = generateRandom(100, canvas.height - 300);
-        pipeData.push(firstPipeHeight);
-        let ob = {
-            a: new Rectangle(
-                context,
-                canvas.width + gap,
-                0,
-                pipeWidth,
-                firstPipeHeight,
-                "black",
-                "green"
-            ),
-            b: new Rectangle(
-                context,
-                canvas.width + gap,
-                firstPipeHeight + middleGap,
-                pipeWidth,
-                canvas.height,
-                "black",
-                "green"
-            ),
-        };
-        pipe[i] = ob;
-        gap = gap + pipeWidth + sideGap;
-    }
-}
-
 
 
 function checkIfGameOver(bird) {
     for (let i = l; i < r; i++) {
-        let ob1 = pipe[i].a;
-        let ob2 = pipe[i].b;
+        let ob1 = pipe.pipes[i].a;
+        let ob2 = pipe.pipes[i].b;
         if (
             bird.bird.x < ob1.x + ob1.width &&
             bird.bird.x + bird.bird.width > ob1.x &&
@@ -166,9 +76,9 @@ function checkIfGameOver(bird) {
 }
 
 function generateInputForNN(bird) {
-    let verticalDisFromFirstPipe = pipe[bird.passed + 1].a.y - bird.bird.y;
-    let verticalDisFromSecondPipe = pipe[bird.passed + 1].b.y - bird.bird.y;
-    let horizontalDisFromPipe = pipe[bird.passed + 1].a.x - bird.bird.x;
+    let verticalDisFromFirstPipe = pipe.pipes[bird.passed + 1].a.y - bird.bird.y;
+    let verticalDisFromSecondPipe = pipe.pipes[bird.passed + 1].b.y - bird.bird.y;
+    let horizontalDisFromPipe = pipe.pipes[bird.passed + 1].a.x - bird.bird.x;
 
     return [verticalDisFromFirstPipe, 
         verticalDisFromSecondPipe, 
@@ -176,141 +86,91 @@ function generateInputForNN(bird) {
 }
 
 function calculateScore(bird) {
-    if (bird.bird.x > pipe[bird.passed + 1].a.x + pipeWidth) {
+    if (bird.bird.x > pipe.pipes[bird.passed + 1].a.x + pipeWidth) {
         bird.passed++;
         bird.score++;
     }
 }
 
 
-function drawFrame(population, again) {
+function changePipeState() {
     for (let i = l; i < r; i++) {
-        pipe[i].a.x += dx;
-        pipe[i].b.x += dx;
-        pipe[i].a.draw();
-        pipe[i].b.draw();
+        pipe.move(pipe.pipes[i], dx);
+        pipe.draw(pipe.pipes[i]);
     }
     totalDx += dx;
 
-    for (let i = 0; i < population.length; i++) {
-        if (population[i].dead) {
-            continue;
-        }
-        if (again && i == bestBird) {
-            if (population[i].vel < 10) {
-                population[i].vel += 1;
-            }
-            population[i].bird.y += population[i].vel;
-            new Circle(
-                context,
-                population[i].bird.x + 15,
-                population[i].bird.y + 15,
-                15,
-                "red",
-                "yellow",
-                population[i].score,
-                "black",
-                10
-            ).draw();
-            continue;
-        }
-        population[i].distanceTraveled = -totalDx;
-        if (population[i].vel < 10) {
-            population[i].vel += 1;
-        }
-        population[i].bird.y += population[i].vel;
-        new Circle(context, population[i].bird.x + 15, population[i].bird.y + 15, 15, 'red', 'yellow', population[i].score, 'black', 10).draw();
-    }
-
-    if (pipe[l].a.x < -pipeWidth && r + 1 < pipeNumbers) {
+    if (pipe.pipes[l].a.x < -pipeWidth && r + 1 < pipeNumbers) {
         l++;
         r++;
-        pipe[r - 1].a.x += totalDx;
-        pipe[r - 1].b.x += totalDx;
+        pipe.move(pipe.pipes[r - 1], totalDx);
     }
 }
 
-function playGame(population, again) {
+function changeBirdState(b) {
+    b.distanceTraveled = -totalDx;
+    if (b.vel < 10) {
+        b.vel += 1;
+    }
+    b.bird.y += b.vel;
+    b.draw();
+}
+
+function playGame(birds) {
     clearCanvas(context);
 
-    drawFrame(population, again);
-    let flag = true;
+    changePipeState();
 
-    if (again) {
-        flag = false;
-        console.log(population[bestBird])
-        let input = generateInputForNN(population[bestBird]);
-        //console.log(population[i].brain.predictJump(input));
-        if (population[bestBird].brain.predictJump(input)) {
-            population[bestBird].vel = -10;
-        }
-        calculateScore(population[bestBird]);
-        if (
-            checkIfGameOver(population[bestBird]) ||
-            population[bestBird].score >= pipeNumbers
-        ) {
-            population[bestBird].dead = true;
-            d++;
-        } else {
-            flag = false;
-        }
-        if (population[bestBird].score >= pipeNumbers - 5) {
-            won = true;
-        }
-    }
-    else {
-        for (let i = 0; i < population.length; i++) {
-        //console.log(population[i]);
-        if (!population[i].dead) {
-            let input = generateInputForNN(population[i]);
-            //console.log(population[i].brain.predictJump(input));
-            if (population[i].brain.predictJump(input)) {
-                population[i].vel = -10;
+    for (let i = 0; i < birds.N; i++) {
+        if (birds.population[i].dead === false) {
+            changeBirdState(birds.population[i]);
+
+            let input = generateInputForNN(birds.population[i]);
+
+            if (birds.population[i].brain.predictJump(input)) {
+                birds.population[i].vel = -10;
             }
-            calculateScore(population[i]);
-            if (checkIfGameOver(population[i]) || population[i].score >= pipeNumbers) {
-                population[i].dead = true;
-                d++;
+
+            calculateScore(birds.population[i]);
+
+            if (checkIfGameOver(birds.population[i], birds)) {
+                birds.alive = birds.alive - 1;
+                birds.population[i].dead = true;
             } 
-            else {
-                flag = false;
-            }
-            if (population[i].score > bestScore) {
-                bestScore = population[i].score;
+
+            if (birds.population[i].score > bestScore) {
+                bestScore = birds.population[i].score;
                 bestScorerGen = generation;
-                console.log(i)
                 bestBird = i;
             }
         }
-        if (population[i].score >= pipeNumbers-5) {
+       
+        if (birds.population[i].score >= pipeNumbers-5) {
             won = true;
-            
         }
     }
-    }
     
-    //console.log('Alive: ', population.length - d)
-    //console.log("Best Score: ", bestScore);
-    let al = population.length - d;
     showGen.innerHTML = "Generation: " + generation;
-    alive.innerHTML = "Alive: " + al;
+    alive.innerHTML = "Alive: " + birds.alive;
     best_score.innerHTML = "Best Score: " + bestScore;
     best_scorer.innerHTML = "Best Generation: " + bestScorerGen;
 
-    if(flag || won) {
-        console.log('hhhhhhhhhh')
+    if(birds.alive == 0 || won) {
         finishGame = true;
         return;
     }
-    
-    t = setTimeout(function () {
-        playGame(population, again);
-    }, 1);
-   // playGame(population);
+
+    setTimeout(function () {
+        playGame(birds);
+    }, 0);
 }
 
-//generatePipe();
-//playGame();
+
+function playWithBestBird() {
+
+    
+}
+
 
 
 

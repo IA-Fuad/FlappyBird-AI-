@@ -1,15 +1,33 @@
-let population = new Population(100);
-population.generateNewPopulation();
+let N = 500;
+let nnInputUnit = 3;
+let nnMiddleLayerUnit = 4;
+let nnOutputUnit = 1;
+
+let mutationRate = 0.5;
+
+let birdInitX = canvas.width / 2 - sideGap;
+let birdInitY = 100;
+let birdWidth = 30;
+let birdHeight = 30;
+let birdRadius = 15;
+
+let generation = 1;
+let bestScorerGen = 1;
+
+
+let birds = new Population(N);
+birds.generateNewPopulation();
 
 let stop = false;
 
 function init() {
-    generatePipe();
-    playGame(population.population, false);
+    pipe = new Pipe(pipeNumbers, pipeWidth, middleGap, sideGap);
+    pipe.generate();
+    playGame(birds);
 }
 
 
-function fitness() {
+function train() {
     if (won) {
         clearCanvas(context);
         alert("Congratulation!");
@@ -19,34 +37,34 @@ function fitness() {
         return;
     }
     if (finishGame) {
-        //console.log(population.population)
-        population.calculateFitness();
-        console.log('score', population.bestScore);
-        population.crossOver();
-        population.mutation(0.4);
-        population.reset();
-        reset();
-        for (let i = 0; i < population.population.length; i++) {
-            population.population[i].reset();
-        }
-        generation++;
-        playGame(population.population, false)
-        //return;
-    }
-    setTimeout(fitness, 10);
-}
+        birds.calculateFitness();
 
-function playAgain() {
-    stop = true;
-    won = false;
-    console.log(bestBird)
-    generatePipe();
-    population.reset();
-    reset();
-    playGame(population.population, true);
+        let newPopulation = birds.crossOver();
+        newPopulation = birds.mutation(mutationRate, newPopulation);
+        birds = new Population(N, newPopulation);
+
+        pipe = new Pipe(pipeNumbers, pipeWidth, middleGap, sideGap, pipe.originalCopy);
+        pipe.generate();
+
+        reset();
+
+        generation++;
+        playGame(birds);
+    }
+    setTimeout(train, 100);
 }
 
 init();
-fitness();
+train();
 
-document.querySelector("#playAgain").addEventListener("click", playAgain);
+
+document.querySelector("#playAgain").addEventListener("click", function () {
+    let bestBird = new Population(1);
+    bestBird.generateNewPopulation();
+    bestBird.population[0].brain = birds.population[birds.bestFit].brain;
+    pipe = new Pipe(pipeNumbers, pipeWidth, middleGap, sideGap);
+    pipe.generate();
+    reset();
+    won = false;
+    playGame(bestBird);
+});

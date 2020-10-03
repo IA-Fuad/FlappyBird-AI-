@@ -58,13 +58,13 @@ init();
 train();
 
 
-document.querySelector("#playAgain").addEventListener("click", function () {
-    let bestBird = new Population(1);
-    bestBird.generateNewPopulation();
-    bestBird.population[0].brain = birds.population[birds.bestFit].brain;
-    pipe = new Pipe(pipeNumbers, pipeWidth, middleGap, sideGap);
-    pipe.generate();
-    reset();
-    won = false;
-    playGame(bestBird);
-});
+// document.querySelector("#playAgain").addEventListener("click", function () {
+//     let bestBird = new Population(1);
+//     bestBird.generateNewPopulation();
+//     bestBird.population[0].brain = birds.population[birds.bestFit].brain;
+//     pipe = new Pipe(pipeNumbers, pipeWidth, middleGap, sideGap);
+//     pipe.generate();
+//     reset();
+//     won = false;
+//     playGame(bestBird);
+// });

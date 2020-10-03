@@ -1,4 +1,4 @@
-let N = 500;
+let N = 100;
 let nnInputUnit = 3;
 let nnMiddleLayerUnit = 4;
 let nnOutputUnit = 1;

@@ -8,10 +8,13 @@ class Population {
         this.totalScore = 0;
         this.alive = N;
 
-        this.generateNewPopulation = function () {
+        this.generateNewPopulation = function (previousBestBrain) {
             for (let i = 0; i < this.N; i++) {
                 this.population[i] = new Bird(birdInitX, birdInitY, birdWidth, birdHeight, birdRadius);
                 this.population[i].brain.generateRandomWeights();
+            }
+            if (previousBestBrain != null) {
+                this.population[0].brain = previousBestBrain;
             }
         };
 
@@ -31,16 +34,9 @@ class Population {
         };
 
         this.crossOver = function () {
-            let newPopulation = [], s = 0;
+            let newPopulation = [];
 
-            for (let i = s; i < this.N; i++) {
-                if (i % 10 == 0) {
-                    let a = chooseParent(this.fitness, this.totalScore);
-                    newPopulation[i] = new Bird(birdInitX, birdInitY, birdWidth, birdHeight, birdRadius);
-                    newPopulation[i].brain = this.population[a].brain;
-                    continue;
-                }
-
+            for (let i = 0; i < this.N; i++) {
                 let a = chooseParent(this.fitness, this.totalScore);
                 let b = chooseParent(this.fitness, this.totalScore);
 
@@ -52,17 +48,11 @@ class Population {
 
                 for (let j = 0; j < aw1.length; j++) {
                     let x = [];
-                    let r = Math.random(), rem = 0;
-                    if (r < 0.5) {
-                        rem = 1;
-                    }
                     for (let k = 0; k < aw1[j].length; k++) {
                         let cross;
-                        if (k % 2 == rem) {
-                            cross = aw1[j][k];
-                        }
-                        else {
-                            cross = bw1[j][k];
+                        cross = (aw1[j][k] + bw1[j][k]) / 2;
+                        if (Math.random() > 0.4) {
+                            cross *= Math.random();
                         }
                         x.push(cross);
                     }
@@ -71,17 +61,11 @@ class Population {
 
                 for (let j = 0; j < aw2.length; j++) {
                     let x = [];
-                    let r = Math.random(), rem = 0;
-                    if (r < 0.5) {
-                        rem = 1;
-                    }
                     for (let k = 0; k < aw2[j].length; k++) {
                         let cross;
-                        if (k % 2 == rem) {
-                            cross = aw2[j][k];
-                        }
-                        else {
-                            cross = bw2[j][k];
+                        cross = (aw2[j][k] + bw2[j][k]) / 2;
+                        if (Math.random() > 0.4) {
+                            cross *= Math.random();
                         }
                         x.push(cross);
                     }
@@ -106,7 +90,7 @@ class Population {
                     for (let j = 0; j < w1.length; j++) {
                         for (let k = 0; k < w1[j].length; k++) {
                             let r = Math.random();
-                            if (r >= 0.5) {
+                            if (r >= 0.3) {
                                 w1[j][k] *= 0.1;
                             }
                         }
@@ -115,7 +99,7 @@ class Population {
                     for (let j = 0; j < w2.length; j++) {
                         for (let k = 0; k < w2[j]; k++) {
                             let r = Math.random();
-                            if (r >= 0.5) {
+                            if (r >= 0.3) {
                                 w2[j][k] *= 0.1;
                             }
                         }
